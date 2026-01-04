@@ -1,12 +1,12 @@
 const auth0Client = new auth0.Auth0Client({
-  domain: "YOUR_DOMAIN",
-  clientId: "YOUR_CLIENT_ID",
+  domain: "https://web410.github.io/rupeerunner/",
+  clientId: "Vx7V7OBG7U5k6eHxGqFigS0Vpi0TGT0F",
   authorizationParams: {
     redirect_uri: window.location.origin + "/dashboard.html"
   }
 });
 
-const API = "YOUR_APPS_SCRIPT_URL";
+const API = "https://script.google.com/macros/s/AKfycbzS_P2RmYzj2dVWyUDwWYQ5VG2nn7aDSv5UKPStH3KvkFBodDQzY8J8iRjMqG_y08Cd/exec";
 
 async function login() {
   await auth0Client.loginWithRedirect();
@@ -59,3 +59,4 @@ async function withdraw() {
 }
 
 init();
+
