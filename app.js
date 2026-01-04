@@ -1,8 +1,7 @@
 /* =====================================================
    RupeeRunner Withdraw System - app.js
-   Frontend only + Auth0 + Google Sheets
+   FIXED Auth0 Redirect + Full Demo
    ===================================================== */
-
 
 /* ===================== CONFIG ======================= */
 const API = "https://script.google.com/macros/s/AKfycbzS_P2RmYzj2dVWyUDwWYQ5VG2nn7aDSv5UKPStH3KvkFBodDQzY8J8iRjMqG_y08Cd/exec";
@@ -15,12 +14,11 @@ const auth0Client = new auth0.Auth0Client({
   }
 });
 
-// Admin email(s)
-const ADMIN_EMAILS = ["admin@gmail.com"]; // replace with your admin email
+const ADMIN_EMAILS = ["admin@gmail.com"]; // change to your admin email
 /* ==================================================== */
 
 
-/* ================= AUTH FUNCTIONS =================== */
+/* ================= AUTH ============================= */
 async function login() {
   await auth0Client.loginWithRedirect();
 }
@@ -35,13 +33,25 @@ async function logout() {
 /* ==================================================== */
 
 
-/* ================= INITIAL LOAD ===================== */
+/* ================= INIT (FIXED) ===================== */
 async function init() {
+  /* 🔑 REQUIRED: Handle Auth0 redirect */
+  if (location.search.includes("code=") && location.search.includes("state=")) {
+    await auth0Client.handleRedirectCallback();
+    window.history.replaceState({}, document.title, location.pathname);
+  }
+
   const isAuth = await auth0Client.isAuthenticated();
 
-  // Not logged in → redirect to login page
+  /* Not logged in → force login page */
   if (!isAuth && !location.pathname.includes("index.html")) {
     location.href = "index.html";
+    return;
+  }
+
+  /* Logged in but still on login page → dashboard */
+  if (isAuth && location.pathname.includes("index.html")) {
+    location.href = "dashboard.html";
     return;
   }
 
@@ -59,7 +69,7 @@ async function init() {
   }
   /* -------------------------------------- */
 
-  /* -------- DASHBOARD USER INFO --------- */
+  /* -------- SHOW USER INFO -------- */
   const userDiv = document.getElementById("user");
   if (userDiv) {
     userDiv.innerHTML = `
@@ -67,9 +77,9 @@ async function init() {
       <p><strong>Email:</strong> ${user.email}</p>
     `;
   }
-  /* -------------------------------------- */
+  /* -------------------------------- */
 
-  /* -------- ADD / UPDATE USER ----------- */
+  /* -------- ADD USER TO SHEET -------- */
   fetch(API, {
     method: "POST",
     body: JSON.stringify({
@@ -79,7 +89,9 @@ async function init() {
       name: user.name
     })
   });
+  /* ---------------------------------- */
 
+  /* -------- SET ONLINE STATUS -------- */
   fetch(API, {
     method: "POST",
     body: JSON.stringify({
@@ -99,9 +111,9 @@ async function init() {
       })
     );
   });
-  /* -------------------------------------- */
+  /* ---------------------------------- */
 
-  // Load admin data if admin page
+  /* Load admin data if admin page */
   loadAdminData();
 }
 /* ==================================================== */
@@ -176,11 +188,10 @@ async function approveWithdraw(auth0_id) {
     method: "POST",
     body: JSON.stringify({
       action: "updateWithdrawStatus",
-      auth0_id: auth0_id,
+      auth0_id,
       status: "completed"
     })
   });
-
   alert("Withdraw approved");
   location.reload();
 }
@@ -190,11 +201,10 @@ async function rejectWithdraw(auth0_id) {
     method: "POST",
     body: JSON.stringify({
       action: "updateWithdrawStatus",
-      auth0_id: auth0_id,
+      auth0_id,
       status: "rejected"
     })
   });
-
   alert("Withdraw rejected");
   location.reload();
 }
