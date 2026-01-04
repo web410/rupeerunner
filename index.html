@@ -1,739 +1,191 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>RupeeRunner - Wallet Dashboard</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RupeeRunner Dashboard</title>
 
-  <!-- Auth0 SDK -->
-  <script src="https://cdn.auth0.com/js/auth0-spa-js/2.0/auth0-spa-js.production.js"></script>
-  
-  <!-- FontAwesome Icons -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  
-  <!-- Google Fonts (Montserrat mimics Spotify's Circular font) -->
-  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.auth0.com/js/auth0-spa-js/2.0/auth0-spa-js.production.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800&display=swap" rel="stylesheet">
 
-  <style>
-    /* ============ SPOTIFY DESIGN SYSTEM ============ */
-    :root {
-      --bg-base: #121212;
-      --bg-elevated: #181818;
-      --bg-elevated-hover: #282828;
-      --bg-press: #000000;
-      --text-base: #FFFFFF;
-      --text-subdued: #B3B3B3;
-      --primary-green: #1DB954;
-      --primary-green-hover: #1ed760;
-      --error-red: #e91429;
-      --warning-orange: #ff9f1a;
-      --card-radius: 8px;
-      --btn-radius: 500px;
-      --transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-    }
-
-    * {
-      box-sizing: border-box;
-      -webkit-tap-highlight-color: transparent;
-    }
-
-    html {
-      scroll-behavior: smooth;
-    }
-
-    body {
-      margin: 0;
-      background-color: var(--bg-base);
-      color: var(--text-base);
-      font-family: 'Montserrat', sans-serif;
-      overflow-x: hidden;
-    }
-
-    /* Scrollbar Styling */
-    ::-webkit-scrollbar {
-      width: 8px;
-    }
-    ::-webkit-scrollbar-track {
-      background: var(--bg-base);
-    }
-    ::-webkit-scrollbar-thumb {
-      background: #555;
-      border-radius: 4px;
-    }
-    ::-webkit-scrollbar-thumb:hover {
-      background: #888;
-    }
-
-    /* ============ LAYOUT ============ */
-    .app-container {
-      max-width: 600px; /* Optimal width for dashboards */
-      margin: 0 auto;
-      padding: 20px;
-      padding-bottom: 80px; /* Space for scrolling */
-    }
-
-    header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 20px 0;
-      margin-bottom: 20px;
-    }
-
-    .logo {
-      font-size: 24px;
-      font-weight: 800;
-      color: var(--text-base);
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-    
-    .logo i { color: var(--primary-green); }
-
-    .user-chip {
-      background: var(--bg-elevated);
-      padding: 6px 14px;
-      border-radius: var(--btn-radius);
-      font-size: 12px;
-      font-weight: 600;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      cursor: pointer;
-    }
-    
-    .user-chip:hover { background: var(--bg-elevated-hover); }
-
-    /* ============ CARDS ============ */
-    .card {
-      background: var(--bg-elevated);
-      border-radius: var(--card-radius);
-      padding: 24px;
-      margin-bottom: 16px;
-      transition: var(--transition);
-      border: 1px solid transparent;
-    }
-
-    .card:hover {
-      background: var(--bg-elevated-hover);
-      border-color: rgba(255,255,255,0.1);
-    }
-
-    .card-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 20px;
-    }
-
-    h2 {
-      margin: 0;
-      font-size: 1.5rem;
-      font-weight: 700;
-    }
-
-    h3 {
-      margin: 0 0 15px 0;
-      font-size: 1.1rem;
-      font-weight: 600;
-      color: var(--text-subdued);
-    }
-
-    p { margin: 0; color: var(--text-subdued); }
-
-    /* ============ BALANCE HERO ============ */
-    .balance-card {
-      background: linear-gradient(135deg, #1db954 0%, #136f33 100%);
-      text-align: center;
-      padding: 40px 20px;
-      position: relative;
-      overflow: hidden;
-    }
-    
-    .balance-card h3 { color: rgba(255,255,255,0.8); }
-    .balance-amount {
-      font-size: 3.5rem;
-      font-weight: 800;
-      color: white;
-      text-shadow: 0 4px 10px rgba(0,0,0,0.2);
-      margin: 10px 0;
-    }
-
-    /* ============ INPUTS ============ */
-    .input-group {
-      margin-bottom: 16px;
-      position: relative;
-    }
-
-    .input-group i {
-      position: absolute;
-      left: 15px;
-      top: 50%;
-      transform: translateY(-50%);
-      color: var(--text-subdued);
-      transition: color 0.2s;
-    }
-
-    input {
-      width: 100%;
-      padding: 14px 14px 14px 45px; /* Left padding for icon */
-      background: #2a2a2a;
-      border: 1px solid transparent;
-      border-radius: 4px;
-      color: white;
-      font-family: inherit;
-      font-size: 14px;
-      outline: none;
-      transition: all 0.2s;
-    }
-
-    input:focus {
-      border-color: var(--text-subdued);
-      background: #333;
-    }
-    
-    input:focus + i, .input-group:focus-within i {
-      color: var(--text-base);
-    }
-
-    input:disabled {
-      background: #121212;
-      color: #555;
-      cursor: not-allowed;
-      border-color: #222;
-    }
-
-    /* ============ BUTTONS ============ */
-    .btn {
-      width: 100%;
-      padding: 14px;
-      border: none;
-      border-radius: var(--btn-radius);
-      font-size: 14px;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-      cursor: pointer;
-      transition: transform 0.1s, background-color 0.2s;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      gap: 10px;
-    }
-
-    .btn:active { transform: scale(0.98); }
-    .btn i { font-size: 16px; }
-
-    .btn-primary {
-      background-color: var(--primary-green);
-      color: black;
-    }
-
-    .btn-primary:hover:not(:disabled) {
-      background-color: var(--primary-green-hover);
-    }
-
-    .btn-secondary {
-      background-color: transparent;
-      color: var(--text-subdued);
-      border: 1px solid #777;
-    }
-
-    .btn-secondary:hover {
-      border-color: var(--text-base);
-      color: var(--text-base);
-    }
-
-    .btn:disabled {
-      background-color: #555;
-      color: #888;
-      cursor: not-allowed;
-      transform: none;
-    }
-
-    /* ============ HISTORY LIST ============ */
-    .history-list {
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-    }
-
-    .history-item {
-      background: rgba(255,255,255,0.05);
-      padding: 16px;
-      border-radius: 6px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      transition: background 0.2s;
-    }
-
-    .history-item:hover {
-      background: rgba(255,255,255,0.1);
-    }
-
-    .h-left { display: flex; flex-direction: column; gap: 4px; }
-    .h-amount { font-weight: 700; color: white; font-size: 16px; }
-    .h-date { font-size: 11px; color: var(--text-subdued); }
-    
-    .badge {
-      padding: 4px 12px;
-      border-radius: 12px;
-      font-size: 11px;
-      font-weight: 700;
-      text-transform: uppercase;
-    }
-
-    .badge-processing { background: rgba(255, 159, 26, 0.2); color: var(--warning-orange); }
-    .badge-completed { background: rgba(29, 185, 84, 0.2); color: var(--primary-green); }
-    .badge-rejected { background: rgba(233, 20, 41, 0.2); color: var(--error-red); }
-
-    /* ============ LOGIN SCREEN ============ */
-    #login-view {
-      height: 100vh;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      text-align: center;
-      padding: 20px;
-      background: radial-gradient(circle at center, #1e1e1e 0%, #121212 100%);
-    }
-    
-    .login-logo {
-      font-size: 4rem;
-      color: var(--primary-green);
-      margin-bottom: 20px;
-    }
-
-    /* ============ TOAST NOTIFICATION ============ */
-    #toast-container {
-      position: fixed;
-      bottom: 20px;
-      left: 50%;
-      transform: translateX(-50%);
-      z-index: 1000;
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-      width: 90%;
-      max-width: 400px;
-      pointer-events: none;
-    }
-
-    .toast {
-      background: #2e77d0; /* Default Blue */
-      color: white;
-      padding: 16px;
-      border-radius: 4px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.5);
-      font-size: 14px;
-      font-weight: 600;
-      opacity: 0;
-      transform: translateY(20px);
-      transition: all 0.3s ease;
-      pointer-events: auto;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-    }
-    
-    .toast.visible { opacity: 1; transform: translateY(0); }
-    .toast.success { background: var(--primary-green); color: black; }
-    .toast.error { background: var(--error-red); }
-
-    /* ============ SPINNER ============ */
-    .fa-spinner {
-      animation: spin 1s linear infinite;
-    }
-    @keyframes spin { 100% { transform: rotate(360deg); } }
-
-    /* ============ UTILS ============ */
-    .hidden { display: none !important; }
-    .text-small { font-size: 12px; margin-top: 8px; display: block; }
-    
-    /* Bank Locked State */
-    .bank-locked-overlay {
-      position: absolute;
-      top: 0; left: 0; right: 0; bottom: 0;
-      background: rgba(0,0,0,0.6);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      border-radius: var(--card-radius);
-      font-weight: bold;
-      color: var(--primary-green);
-      backdrop-filter: blur(2px);
-    }
-
-  </style>
+<style>
+body{margin:0;background:#121212;color:#fff;font-family:Montserrat}
+.hidden{display:none}
+.app{max-width:600px;margin:auto;padding:20px}
+.card{background:#181818;border-radius:10px;padding:20px;margin-bottom:15px}
+.balance{font-size:42px;font-weight:800;color:#1db954;text-align:center}
+input{width:100%;padding:12px;border:none;border-radius:6px;background:#2a2a2a;color:#fff;margin-bottom:10px}
+button{width:100%;padding:12px;border:none;border-radius:30px;font-weight:700;cursor:pointer}
+.primary{background:#1db954;color:#000}
+.secondary{background:#333;color:#aaa}
+button:disabled{background:#555;color:#888}
+.history-item{display:flex;justify-content:space-between;background:#222;padding:12px;border-radius:6px;margin-bottom:8px}
+.badge-processing{color:#ff9f1a}
+.badge-completed{color:#1db954}
+.badge-rejected{color:#e91429}
+</style>
 </head>
+
 <body>
 
-  <!-- TOAST CONTAINER -->
-  <div id="toast-container"></div>
+<div id="login" class="app">
+  <h1 style="text-align:center">RupeeRunner</h1>
+  <button class="primary" onclick="login()">Login with Google</button>
+</div>
 
-  <!-- LOGIN VIEW -->
-  <div id="login-view">
-    <div class="login-logo">
-      <i class="fa-brands fa-google"></i>
-    </div>
-    <h1 style="margin-bottom: 10px;">RupeeRunner</h1>
-    <p style="margin-bottom: 40px;">Instant Withdrawals Dashboard</p>
-    <button class="btn btn-primary" onclick="login()" style="max-width: 300px;">
-      Login with Google
-    </button>
+<div id="dashboard" class="app hidden">
+
+  <div class="card">
+    <div id="name"></div>
+    <div id="email" style="font-size:12px;color:#aaa"></div>
   </div>
 
-  <!-- DASHBOARD VIEW -->
-  <div id="dashboard-view" class="app-container hidden">
-    
-    <header>
-      <div class="logo">
-        <i class="fa-solid fa-bolt"></i> RupeeRunner
-      </div>
-      <div class="user-chip" onclick="logout()">
-        <i class="fa-solid fa-right-from-bracket"></i> Logout
-      </div>
-    </header>
-
-    <!-- USER PROFILE (Mini) -->
-    <div style="margin-bottom: 20px; display: flex; align-items: center; gap: 12px;">
-      <div style="width: 40px; height: 40px; background: #333; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
-        <i class="fa-solid fa-user" style="color: #777;"></i>
-      </div>
-      <div>
-        <div id="name" style="font-weight: 700; font-size: 16px;">Loading...</div>
-        <div id="email" style="font-size: 12px; color: var(--text-subdued);">...</div>
-      </div>
-    </div>
-
-    <!-- BALANCE CARD -->
-    <div class="card balance-card">
-      <h3>Total Balance</h3>
-      <div class="balance-amount" id="balance">₹0</div>
-      <div style="font-size: 12px; opacity: 0.8;">Available for withdrawal</div>
-    </div>
-
-    <!-- BANK DETAILS CARD -->
-    <div class="card" style="position: relative;">
-      <div class="card-header">
-        <h2 style="font-size: 1.2rem;"><i class="fa-solid fa-building-columns"></i> Bank Details</h2>
-      </div>
-      
-      <div id="bankForm">
-        <div class="input-group">
-          <i class="fa-solid fa-landmark"></i>
-          <input id="bankName" type="text" placeholder="Bank Name (e.g., SBI)">
-        </div>
-        <div class="input-group">
-          <i class="fa-solid fa-credit-card"></i>
-          <input id="accountNo" type="number" placeholder="Account Number">
-        </div>
-        <div class="input-group">
-          <i class="fa-solid fa-barcode"></i>
-          <input id="ifsc" type="text" placeholder="IFSC Code (e.g., SBIN0001234)">
-        </div>
-        <button id="saveBankBtn" class="btn btn-secondary" onclick="saveBank()">
-          Save Bank Details
-        </button>
-      </div>
-
-      <!-- Locked Overlay -->
-      <div id="bankLocked" class="bank-locked-overlay hidden">
-        <i class="fa-solid fa-lock" style="margin-right: 8px;"></i> Verified
-      </div>
-    </div>
-
-    <!-- WITHDRAW CARD -->
-    <div class="card">
-      <div class="card-header">
-        <h2 style="font-size: 1.2rem;"><i class="fa-solid fa-wallet"></i> Withdraw Funds</h2>
-      </div>
-      
-      <div class="input-group">
-        <i class="fa-solid fa-indian-rupee-sign"></i>
-        <input id="amount" type="number" placeholder="Enter Amount (₹)">
-      </div>
-      
-      <button id="withdrawBtn" class="btn btn-primary" onclick="withdraw()">
-        Withdraw Now
-      </button>
-      <span class="text-small" style="text-align: center;">Min: ₹100 | Processing time: 24hrs</span>
-    </div>
-
-    <!-- HISTORY CARD -->
-    <div class="card">
-      <div class="card-header">
-        <h2 style="font-size: 1.2rem;"><i class="fa-solid fa-clock-rotate-left"></i> Recent History</h2>
-      </div>
-      <div id="historyList" class="history-list">
-        <!-- Items injected here -->
-        <p style="text-align: center; color: #555; padding: 20px;">Loading history...</p>
-      </div>
-    </div>
-
+  <div class="card">
+    <div style="text-align:center">Balance</div>
+    <div id="balance" class="balance">₹0</div>
   </div>
+
+  <div class="card">
+    <h3>Bank Details (One Time)</h3>
+    <input id="bankName" placeholder="Bank Name">
+    <input id="accountNo" placeholder="Account Number">
+    <input id="ifsc" placeholder="IFSC Code">
+    <button id="saveBankBtn" class="secondary" onclick="saveBank()">Save Bank</button>
+    <div id="bankLock" class="hidden" style="color:#1db954;margin-top:10px">✔ Bank Verified</div>
+  </div>
+
+  <div class="card">
+    <h3>Withdraw</h3>
+    <input id="amount" type="number" placeholder="Amount">
+    <button id="withdrawBtn" class="primary" onclick="withdraw()" disabled>Withdraw</button>
+  </div>
+
+  <div class="card">
+    <h3>Withdraw History</h3>
+    <div id="history"></div>
+  </div>
+
+  <button class="secondary" onclick="logout()">Logout</button>
+
+</div>
 
 <script>
-/* ================= CONFIG ================= */
-const API = "https://script.google.com/macros/s/AKfycbzS_P2RmYzj2dVWyUDwWYQ5VG2nn7aDSv5UKPStH3KvkFBodDQzY8J8iRjMqG_y08Cd/exec";
+const API="https://script.google.com/macros/s/AKfycbzS_P2RmYzj2dVWyUDwWYQ5VG2nn7aDSv5UKPStH3KvkFBodDQzY8J8iRjMqG_y08Cd/exec";
 
-const auth0Client = new auth0.Auth0Client({
-  domain: "dev-nil04cagtdkw1jp1.us.auth0.com",
-  clientId: "Vx7V7OBG7U5k6eHxGqFigS0Vpi0TGT0F",
-  authorizationParams: {
-    redirect_uri: window.location.origin + "/rupeerunner/index.html" 
-    // Note: Ensure this matches exactly what is in Auth0 settings
-  }
+const ADMIN_EMAILS=[
+  "project410api@gmail.com",
+  "project410api2@gmail.com"
+];
+
+let currentBalance=0;
+let bankSaved=false;
+
+const auth0Client=new auth0.Auth0Client({
+  domain:"dev-nil04cagtdkw1jp1.us.auth0.com",
+  clientId:"Vx7V7OBG7U5k6eHxGqFigS0Vpi0TGT0F",
+  authorizationParams:{redirect_uri:window.location.href}
 });
-/* ========================================= */
 
-/* ================= UI HELPERS ============= */
-function showToast(message, type = 'normal') {
-  const container = document.getElementById('toast-container');
-  const toast = document.createElement('div');
-  toast.className = `toast ${type}`;
-  
-  let icon = '<i class="fa-solid fa-circle-info"></i>';
-  if(type === 'success') icon = '<i class="fa-solid fa-circle-check"></i>';
-  if(type === 'error') icon = '<i class="fa-solid fa-circle-exclamation"></i>';
+async function login(){await auth0Client.loginWithRedirect()}
+async function logout(){await auth0Client.logout({logoutParams:{returnTo:window.location.href}})}
 
-  toast.innerHTML = `<span>${icon} &nbsp; ${message}</span>`;
-  
-  container.appendChild(toast);
-  
-  // Trigger animation
-  setTimeout(() => toast.classList.add('visible'), 10);
-
-  // Remove after 3 seconds
-  setTimeout(() => {
-    toast.classList.remove('visible');
-    setTimeout(() => toast.remove(), 300);
-  }, 3000);
-}
-
-function toggleLoading(btnId, isLoading) {
-  const btn = document.getElementById(btnId);
-  if (!btn) return;
-  
-  if (isLoading) {
-    btn.dataset.originalText = btn.innerHTML;
-    btn.disabled = true;
-    btn.innerHTML = '<i class="fa-solid fa-spinner"></i> Processing...';
-  } else {
-    btn.disabled = false;
-    btn.innerHTML = btn.dataset.originalText;
+async function init(){
+  if(location.search.includes("code=")){
+    await auth0Client.handleRedirectCallback();
+    history.replaceState({},'',location.pathname);
   }
+  if(!await auth0Client.isAuthenticated()) return;
+  document.getElementById("login").classList.add("hidden");
+  document.getElementById("dashboard").classList.remove("hidden");
+
+  const user=await auth0Client.getUser();
+  name.innerText=user.name;
+  email.innerText=user.email;
+
+  await fetch(API,{method:"POST",body:JSON.stringify({
+    action:"addUser",auth0_id:user.sub,email:user.email,name:user.name
+  })});
+
+  loadProfile();
+  loadHistory();
 }
-/* ========================================= */
 
+async function loadProfile(){
+  const user=await auth0Client.getUser();
+  const r=await fetch(API,{method:"POST",body:JSON.stringify({
+    action:"getUserProfile",auth0_id:user.sub
+  })});
+  const d=await r.json();
+  if(!d.profile) return;
 
-/* ================= AUTH =================== */
-async function login() {
-  try {
-    await auth0Client.loginWithRedirect();
-  } catch (e) {
-    showToast("Login failed: " + e.message, "error");
+  currentBalance=Number(d.profile.balance);
+  bankSaved=d.profile.bankSaved;
+
+  balance.innerText="₹"+currentBalance;
+  withdrawBtn.disabled=!(bankSaved && currentBalance>0);
+
+  if(bankSaved){
+    bankLock.classList.remove("hidden");
+    bankName.disabled=accountNo.disabled=ifsc.disabled=true;
+    saveBankBtn.style.display="none";
   }
 }
 
-async function logout() {
-  await auth0Client.logout({
-    logoutParams: {
-      returnTo: window.location.origin + "/rupeerunner/index.html"
-    }
+async function saveBank(){
+  const user=await auth0Client.getUser();
+  if(!bankName.value||!accountNo.value||!ifsc.value) return alert("Fill all bank details");
+
+  await fetch(API,{method:"POST",body:JSON.stringify({
+    action:"saveBank",
+    auth0_id:user.sub,
+    bank_name:bankName.value,
+    account_no:accountNo.value,
+    ifsc:ifsc.value
+  })});
+
+  bankSaved=true;
+  bankLock.classList.remove("hidden");
+  bankName.disabled=accountNo.disabled=ifsc.disabled=true;
+  saveBankBtn.style.display="none";
+  if(currentBalance>0) withdrawBtn.disabled=false;
+}
+
+async function withdraw(){
+  const amt=Number(amount.value);
+  if(!bankSaved) return alert("Add bank first");
+  if(amt<=0) return alert("Invalid amount");
+  if(amt>currentBalance) return alert("Insufficient balance");
+
+  const user=await auth0Client.getUser();
+  await fetch(API,{method:"POST",body:JSON.stringify({
+    action:"withdraw",auth0_id:user.sub,amount:amt
+  })});
+
+  currentBalance-=amt;
+  balance.innerText="₹"+currentBalance;
+  amount.value="";
+  if(currentBalance<=0) withdrawBtn.disabled=true;
+  loadHistory();
+}
+
+async function loadHistory(){
+  const user=await auth0Client.getUser();
+  const r=await fetch(API,{method:"POST",body:JSON.stringify({
+    action:"getUserWithdraws",auth0_id:user.sub
+  })});
+  const d=await r.json();
+  history.innerHTML="";
+  (d.withdraws||[]).reverse().forEach(w=>{
+    history.innerHTML+=`
+      <div class="history-item">
+        <div>₹${w[1]}</div>
+        <div class="badge-${w[3]}">${w[3]}</div>
+      </div>`;
   });
 }
-/* ========================================= */
 
-
-/* ================= INIT =================== */
-async function init() {
-  // Handle Auth0 redirect
-  if (location.search.includes("code=") && location.search.includes("state=")) {
-    try {
-      await auth0Client.handleRedirectCallback();
-      history.replaceState({}, document.title, location.pathname + location.hash);
-    } catch (e) {
-      console.error(e);
-      showToast("Authentication error", "error");
-      return;
-    }
-  }
-
-  const isAuth = await auth0Client.isAuthenticated();
-
-  if (!isAuth) {
-    document.getElementById('login-view').classList.remove('hidden');
-    document.getElementById('dashboard-view').classList.add('hidden');
-    return;
-  }
-
-  // Switch Views
-  document.getElementById('login-view').classList.add('hidden');
-  document.getElementById('dashboard-view').classList.remove('hidden');
-
-  const user = await auth0Client.getUser();
-  
-  // Populate Profile
-  document.getElementById("name").innerText = user.name || "User";
-  document.getElementById("email").innerText = user.email;
-
-  // Add user to DB (Fire and forget)
-  fetch(API, {
-    method: "POST",
-    body: JSON.stringify({
-      action: "addUser",
-      auth0_id: user.sub,
-      email: user.email,
-      name: user.name
-    })
-  });
-
-  loadWithdrawHistory();
-}
-/* ========================================= */
-
-
-/* ================= BANK =================== */
-async function saveBank() {
-  const user = await auth0Client.getUser();
-  const bank_name = document.getElementById('bankName').value.trim();
-  const account_no = document.getElementById('accountNo').value.trim();
-  const ifsc = document.getElementById('ifsc').value.trim();
-
-  if (!bank_name || !account_no || !ifsc) {
-    showToast("Please fill all bank details", "error");
-    return;
-  }
-
-  toggleLoading('saveBankBtn', true);
-
-  try {
-    await fetch(API, {
-      method: "POST",
-      body: JSON.stringify({
-        action: "saveBank",
-        auth0_id: user.sub,
-        bank_name,
-        account_no,
-        ifsc
-      })
-    });
-    
-    showToast("Bank details saved successfully!", "success");
-    
-    // Visual Update
-    document.getElementById('bankLocked').classList.remove('hidden');
-    document.getElementById('bankName').disabled = true;
-    document.getElementById('accountNo').disabled = true;
-    document.getElementById('ifsc').disabled = true;
-    document.getElementById('saveBankBtn').style.display = 'none';
-
-  } catch (e) {
-    showToast("Failed to save bank details", "error");
-  } finally {
-    toggleLoading('saveBankBtn', false);
-  }
-}
-/* ========================================= */
-
-
-/* ================= WITHDRAW =============== */
-async function withdraw() {
-  const user = await auth0Client.getUser();
-  const amountInput = document.getElementById('amount');
-  const amt = Number(amountInput.value);
-
-  if (!amt || amt <= 0) {
-    showToast("Please enter a valid amount", "error");
-    return;
-  }
-
-  toggleLoading('withdrawBtn', true);
-
-  try {
-    await fetch(API, {
-      method: "POST",
-      body: JSON.stringify({
-        action: "withdraw",
-        auth0_id: user.sub,
-        amount: amt
-      })
-    });
-
-    showToast("Withdraw request submitted!", "success");
-    amountInput.value = "";
-    loadWithdrawHistory(); // Refresh list
-
-  } catch (e) {
-    showToast("Request failed. Try again.", "error");
-  } finally {
-    toggleLoading('withdrawBtn', false);
-  }
-}
-/* ========================================= */
-
-
-/* ============ WITHDRAW HISTORY ============ */
-async function loadWithdrawHistory() {
-  const user = await auth0Client.getUser();
-  const list = document.getElementById("historyList");
-
-  try {
-    const res = await fetch(API, {
-      method: "POST",
-      body: JSON.stringify({
-        action: "getUserWithdraws",
-        auth0_id: user.sub
-      })
-    });
-
-    const data = await res.json();
-
-    if (!data.withdraws || data.withdraws.length === 0) {
-      list.innerHTML = `
-        <div style="text-align:center; padding: 20px; color:#555;">
-          <i class="fa-solid fa-inbox" style="font-size: 24px; margin-bottom: 10px;"></i>
-          <p>No transactions yet</p>
-        </div>`;
-      return;
-    }
-
-    list.innerHTML = "";
-    // Reverse to show newest first
-    data.withdraws.reverse().forEach(w => {
-      // Assuming data structure from original: [id, amount, date, status, timestamp] 
-      // Or adjust indices based on actual response. Original used w[3] for status, w[4] for date.
-      // Let's stick to original index assumption:
-      // w[1] = Amount, w[3] = Status, w[4] = Date
-      
-      const statusClass = `badge-${w[3].toLowerCase()}`; // processing, completed, rejected
-      const dateObj = new Date(w[4]);
-      const dateStr = dateObj.toLocaleDateString() + ' ' + dateObj.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-
-      list.innerHTML += `
-        <div class="history-item">
-          <div class="h-left">
-            <span class="h-amount">₹${w[1]}</span>
-            <span class="h-date">${dateStr}</span>
-          </div>
-          <span class="badge ${statusClass}">${w[3]}</span>
-        </div>
-      `;
-    });
-
-  } catch (e) {
-    console.error(e);
-    list.innerHTML = `<p style="text-align:center; color:red">Error loading history</p>`;
-  }
-}
-/* ========================================= */
-
-// Start App
-window.addEventListener('load', init);
+init();
 </script>
 </body>
 </html>
